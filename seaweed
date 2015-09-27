@@ -1,0 +1,110 @@
+#!/bin/sh
+
+#==============================================================
+# Startup script for Seaweed-FS NoSQL File Server
+#
+# Author: Ferdinand Enario ftenario@yahoo.com
+#
+# History:
+# Sept 24, 2015 - initial implementation
+#
+#==============================================================
+
+### BEGIN INIT INFO
+# Provides: seadweed server
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop:  0 1 6
+# Short-Description:  seaweed daemon
+# Description: Enable service for daemon
+### END INIT INFO
+
+#Location of your weed binary
+BINARY=/usr/local/bin/weed 
+
+#log directory
+LOG=/techops/weedfs-log/ 
+
+#type of weed i.e. master,volume,server
+TYPE=volume 
+
+#location of data
+DIR=/techops/weedfs/ 
+
+#from /etc/hostname
+IP=$(hostname)
+
+#listening port
+PORT=8080 
+
+#Master server
+MSERVER=localhost:9333 
+
+#Max number of volumes
+MAX=100
+
+#Set a path
+PATH=$PATH:/usr/local/bin
+export PATH
+
+test -x $BINARY || exit 0
+
+case "$1" in
+	'start')
+		echo "Starting Seaweed-FS..."
+		if [ ! -d /var/run/seaweed ]; 
+		then
+			mkdir /var/run/seaweed
+		fi
+		sleep 1
+
+		if [ -f /var/run/seaweed/seaweed.pid ]; 
+		then
+			rm /var/run/seaweed/seaweed.pid
+		else
+			touch /var/run/seaweed/seaweed.pid
+			if [ -f $BINARY ];
+			then
+				exec $BINARY -log_dir=$LOG $TYPE -dir=$DIR \
+					-ip=$IP -port $PORT -mserver=$MSERVER -max=$MAX  > /dev/null 2>&1 &
+				echo $! > /var/run/seaweed/seaweed.pid
+			fi
+		fi
+		sleep 1
+		
+		;;
+	'stop')
+		echo "Stopping Seaweed Server..."
+		pid=`cat /var/run/seaweed/seaweed.pid`
+		kill $pid
+		rm /var/run/seaweed/seaweed.pid
+
+		;;
+	'restart')
+		echo "Restarting Seaweed Server..."
+		if [ -f /var/run/seaweed/seaweed.pid ]; 
+		then
+			pid=`cat /var/run/seaweed/seaweed.pid`
+			kill $pid
+			rm /var/run/seaweed/seaweed.pid
+		fi
+		sleep 1
+		
+		touch /var/run/seaweed/seaweed.pid
+		exec $BINARY -log_dir=$LOG $TYPE -dir=$DIR \
+			-ip=$IP -port $PORT -mserver=$MSERVER -max=$MAX  > /dev/null 2>&1 &
+		echo $! > /var/run/seaweed/seaweed.pid
+		sleep 1
+
+		;;
+	*)
+		echo "Usage: seaweed start|stop|restart"
+		exit 1
+		;;
+esac
+exit 0
+
+
+
+

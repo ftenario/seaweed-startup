@@ -1,0 +1,101 @@
+#!/bin/sh
+
+#==============================================================
+# Startup script for Seaweed-FS NoSQL File Server
+#
+# Author: Ferdinand Enario ftenario@yahoo.com
+#
+# History:
+# Sept 24, 2015 - initial implementation
+#
+#==============================================================
+
+### BEGIN INIT INFO
+# Provides: seadweed master server
+# Required-Start:
+# Required-Stop:
+# Default-Start: 2 3 4 5
+# Default-Stop:  0 1 6
+# Short-Description:  seaweed master daemon
+# Description: Enable service for seaweed master daemon
+### END INIT INFO
+
+#Location of your weed binary
+BINARY=/usr/local/bin/weed 
+
+#type of weed i.e. master,volume,server
+TYPE=master 
+
+#location of data
+MDIR=/techops/weedfs-m/ 
+
+#from /etc/hostname
+IP=$(hostname)
+
+#listening port
+PORT=9333 
+
+#Set a path
+PATH=$PATH:/usr/local/bin
+export PATH
+
+test -x $BINARY || exit 0
+
+case "$1" in
+	'start')
+		echo "Starting Seaweed-FS Master..."
+		if [ ! -d /var/run/seaweed ]; 
+		then
+			mkdir /var/run/seaweed
+		fi
+		sleep 1
+
+		if [ -f /var/run/seaweed/seaweed-master.pid ]; 
+		then
+			rm /var/run/seaweed/seaweed-master.pid
+		else
+			touch /var/run/seaweed/seaweed-master.pid
+			if [ -f $BINARY ];
+			then
+				exec $BINARY $TYPE -mdir=$MDIR \
+					-ip=$IP -port $PORT > /dev/null 2>&1 &
+				echo $! > /var/run/seaweed/seaweed-master.pid
+			fi
+		fi
+		sleep 1
+		
+		;;
+	'stop')
+		echo "Stopping Seaweed Master Server..."
+		pid=`cat /var/run/seaweed/seaweed-master.pid`
+		kill $pid
+		rm /var/run/seaweed/seaweed-master.pid
+
+		;;
+	'restart')
+		echo "Restarting Seaweed Master Server..."
+		if [ -f /var/run/seaweed/seaweed-master.pid ]; 
+		then
+			pid=`cat /var/run/seaweed/seaweed-master.pid`
+			kill $pid
+			rm /var/run/seaweed/seaweed-master.pid
+		fi
+		sleep 1
+		
+		touch /var/run/seaweed/seaweed-master.pid
+		exec $BINARY $TYPE -mdir=$DIR \
+			-ip=$IP -port $PORT > /dev/null 2>&1 &
+		echo $! > /var/run/seaweed/seaweed-master.pid
+		sleep 1
+
+		;;
+	*)
+		echo "Usage: seaweed-master start|stop|restart"
+		exit 1
+		;;
+esac
+exit 0
+
+
+
+
