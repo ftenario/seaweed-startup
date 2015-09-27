@@ -5,8 +5,18 @@ This is a startup script for SeadweedFS on Debian Linux.
 
 # Installation
 Copy the file to /etc/init.d and create a symlink on your runlevel.
-Ex. "ln -s /etc/init.d/seaweed /etc/rc3.d/S90seaweed"
 
+For SeaweedFS Master
+Copy "seaweed-master" to /etc/init.d
+
+Create symlink
+"ln -s /etc/init.d/seaweed-master /etc/rc3.d/S90seaweed-master"
+
+For SeaweedFS Volume
+Copy "seaweed" to /etc/init.d
+
+Create symlink
+"ln -s /etc/init.d/seaweed /etc/rc3.d/S91seaweed"
 
 # Configuration
 
