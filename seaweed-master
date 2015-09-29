@@ -27,13 +27,22 @@ BINARY=/usr/local/bin/weed
 TYPE=master 
 
 #location of data
-MDIR=/techops/weedfs-m/ 
+MDIR=/techops/weedfs-master/ 
+
+#Log Directory
+LOG_DIR=/techops/weedfs-master-log
 
 #from /etc/hostname
 IP=$(hostname)
 
 #listening port
 PORT=9333 
+
+#Replication
+REPLICATION=001
+
+#Pulse
+PULSE=3
 
 #Set a path
 PATH=$PATH:/usr/local/bin
@@ -57,8 +66,11 @@ case "$1" in
 			touch /var/run/seaweed/seaweed-master.pid
 			if [ -f $BINARY ];
 			then
-				exec $BINARY $TYPE -mdir=$MDIR \
-					-ip=$IP -port $PORT > /dev/null 2>&1 &
+				exec $BINARY -log_dir=$LOG_DIR \
+					$TYPE -mdir=$MDIR \
+					-ip=$IP -port $PORT \
+					-defaultReplication=$REPLICATION \
+					-pulseSeconds=$PULSE > /dev/null 2>&1 &
 				echo $! > /var/run/seaweed/seaweed-master.pid
 			fi
 		fi
@@ -83,8 +95,12 @@ case "$1" in
 		sleep 1
 		
 		touch /var/run/seaweed/seaweed-master.pid
-		exec $BINARY $TYPE -mdir=$DIR \
-			-ip=$IP -port $PORT > /dev/null 2>&1 &
+		exec $BINARY -log_dir=$LOG_DIR \
+			$TYPE -mdir=$MDIR \
+			-ip=$IP -port $PORT \
+			-defaultReplication=$REPLICATION \
+			-pulseSeconds=$PULSE > /dev/null 2>&1 &
+
 		echo $! > /var/run/seaweed/seaweed-master.pid
 		sleep 1
 
